@@ -1,0 +1,163 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0"/> <!-- iphone,android -->
+	<meta name="HandheldFriendly" content="true" /> <!-- blackberry -->
+	<title>Fake Touch Interface</title>
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+	<script type="text/javascript" charset="utf-8" src="../fti.min.js"></script>
+	<script type="text/javascript" charset="utf-8">
+	
+var device = new function() {
+	var $this = this;
+	var div = document.createElement('div');
+	function getVendorPropertyName(prop) {
+		var prefixes = ['Moz', 'Webkit', 'O', 'ms'];
+		var prop_ = prop.charAt(0).toUpperCase() + prop.substr(1);
+		if (prop in div.style) { return prop; }
+		for (var i=0; i<prefixes.length; ++i) {
+			var vendorProp = prefixes[i] + prop_;
+			if (vendorProp in div.style) { return vendorProp; }
+		}
+	}
+	
+	function checkTransform3dSupport() {
+		div.style[$this.cssTransform] = '';
+		div.style[$this.cssTransform] = 'rotateY(90deg)';
+		return div.style[$this.cssTransform] !== '';
+	}
+  
+	this.cssTransform = getVendorPropertyName('transform');
+	this.cssTransform3d = checkTransform3dSupport();
+	this.hasTouch=false;
+	//this.handlesMultitouch=false;
+	if('ontouchstart' in window) this.hasTouch=true;
+	console.log(this);
+	if(!this.hasTouch) {
+		touchFacade.registerEmulator(mouseEmulator);
+		console.log("Załadowano moduł emulacji multitouch dla myszy");
+	}
+}
+	
+var game = new function() {
+	this.ballData = {pos:{x:0,y:0},spd:{x:0,y:0}};
+	this.playersData = [
+		{pos:{x:0,y:0},prevPos:{x:0,y:0},pointer:{x:0,y:0,time:0},prevPointer:{x:0,y:0,time:0}},
+		{pos:{x:0,y:0},prevPos:{x:0,y:0},pointer:{x:0,y:0,time:0},prevPointer:{x:0,y:0,time:0}}
+	];
+	this.players = [ [], [] ];
+	this.ball = null;
+	
+	this.createPlayers = function() {
+		for( var i=0;i<2;i++ ) {
+			game.players[i] = document.createElement("div");
+			var player = game.players[i];
+			player.style["position"]="absolute";
+			player.style["top"]="0px";
+			player.style["left"]="0px";
+			player.className += " player";
+			game.playersData[i].pos.x = i==0?40:window.innerWidth-140;
+			game.playersData[i].pos.y = window.innerHeight/2-50;
+			player.setAttribute("data-id", i );
+			document.body.appendChild(player);
+			player.addEventListener( "tmSlideStart", game.startSlide, false );
+			game.update( player, game.playersData[i].pos );
+		}
+	}
+	
+	this.createBall = function() {
+		game.ball = document.createElement("div");
+		game.ball.style["position"]="absolute";
+		game.ball.style["top"]="0px";
+		game.ball.style["left"]="0px";
+		game.ball.className += " ball";
+		game.ballData.pos['x'] = window.innerWidth/3-25;
+		game.ballData.pos['y'] = window.innerHeight/2-25;
+		document.body.appendChild(game.ball);
+		game.update( game.ball, game.ballData.pos );
+	}
+	
+	this.update = function( elem, pos ) {
+		if(device.cssTransform3d) elem.style[device.cssTransform] = 'translate3D('+pos.x+'px,'+pos.y+'px,0)';
+		else elem.style[device.cssTransform] = 'translate('+pos.x+'px,'+pos.y+'px)';
+	}
+	
+	this.startSlide	= function( e ) {
+		var playerID = e.target.getAttribute( 'data-id' );
+		e.target.addEventListener( "tmSlide", game.onSlide, false );
+		e.target.addEventListener( "tmSlideEnd", game.stopSlide, false );
+	}
+	this.onSlide = function( e ) {
+		var playerID = parseInt( e.target.getAttribute( 'data-id' ) ); 
+		var px, py;
+		with(game.playersData[playerID]) {
+			px = -50-prevPointer.x + pointer.x;
+			py = -50-prevPointer.y + pointer.y;
+		}
+
+		//if( playerID==0 ) px = Math.min( px, window.innerWidth/2-100 );
+		//else px = Math.max( px, window.innerWidth/2 );
+		e.preventDefault();
+		
+		game.update( e.target, game.playersData[ playerID ].pos );
+		
+		game.playersData[ playerID ].prevPos = {
+			x:game.playersData[playerID].pos.x,
+			y:game.playersData[playerID].pos.y
+		}
+		game.playersData[ playerID ].prevPointerPos = {
+			x:game.playersData[playerID].pointer.x,
+			y:game.playersData[playerID].pointer.y,
+			time:game.playersData[playerID].pointer.time
+		};
+		game.playersData[ playerID ].pos = { x:px, y:py }
+		game.playersData[ playerID ].pointer = {
+			x:e.touch.clientX,
+			y:e.touch.clientY,
+			time:e.timeStamp
+		}
+		game.updateBall();
+	}
+	this.stopSlide = function( e ) {
+		e.target.removeEventListener( "tmSlide", game.onSlide, false );
+		e.target.removeEventListener( "tmSlideEnd", game.stopSlide, false );
+	}
+
+	this.updateBall = function() {
+		for( var i=0;i<2;i++ ) {
+			var dx = game.playersData[i].pos.x-game.ballData.pos.x+25;
+			var dy = game.playersData[i].pos.y-game.ballData.pos.y+25;
+			var dst = Math.sqrt(dx*dx+dy*dy);
+			if( dst < 75 ) game.ballData.spd = { x:-dx/7, y:-dy/7 };
+		}
+		if(game.ballData.pos.x<=0) game.ballData.spd.x = Math.abs( game.ballData.spd.x );
+		if(game.ballData.pos.x>window.innerWidth-50) game.ballData.spd.x = -Math.abs( game.ballData.spd.x );
+		if(game.ballData.pos.y<=0) game.ballData.spd.y=Math.abs(game.ballData.spd.y);
+		if(game.ballData.pos.y>window.innerHeight-50) game.ballData.spd.y=-Math.abs(game.ballData.spd.y);
+	}
+	
+	this.updateGame = function() {
+		game.updateBall();
+		game.ballData.pos.x += game.ballData.spd.x;
+		game.ballData.pos.y += game.ballData.spd.y;
+		game.update( game.ball, game.ballData.pos );
+	}
+}	
+		function setup() {
+			game.createBall();
+			game.createPlayers();
+		}
+				
+		function init() {
+			touchFacade.init();
+			touchFacade.registerDispatcher(slideHandler);
+			setup();
+			setInterval( game.updateGame, 10/*ms*/ );
+		}
+	</script>
+</head>
+
+<body onload="init();" style="width: 100%; height: 100%;"></body>
+</html>

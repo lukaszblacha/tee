@@ -1,0 +1,25 @@
+@import url("reset.css");
+
+body {
+	background:#eee;
+	overflow:hidden;
+}
+
+body > img.tm {
+	background: #333;
+	padding: 1px;
+	border: solid 10px #FFF;
+	border-bottom-width: 30px;
+}
+
+body > div.tm {
+	border-top: solid 30px rgba(0,0,0,.2);
+	padding: 0 10px;
+	overflow:hidden;
+	font-family: century gothic, tahoma,verdana,arial;
+}
+
+body > video.tm {
+	background: #000;
+	padding: 30px 0 30px 0;
+}
