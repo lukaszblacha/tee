@@ -5,7 +5,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0"/> <!-- iphone,android -->
 	<meta name="HandheldFriendly" content="true" /> <!-- blackberry -->
-	<title>Fake Touch Interface</title>
+	<title>Virtual Light Table</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css" />
 	<script type="text/javascript" charset="utf-8" src="../tee.min.js"></script>
 	<script type="text/javascript" charset="utf-8">
@@ -142,6 +142,7 @@ var virtualTable = new function() {
 	}
 	
 	this.moveToFront = function(elem) { elem.style.zIndex=virtualTable.zIdx++; }
+	
 	// Setting the transform style property based on custom element properties
 	this.update = function(elem) {
 		var data;
@@ -155,36 +156,29 @@ var virtualTable = new function() {
 		elem.style[device.cssTransform] = data;
 	}
 	
-	this.startSlide	= function(e) {
-		e.target.style['boxShadow']="0 0 10px #000";
-		e.target.setAttribute("data-start-x",e.target.getAttribute("data-x"));
-		e.target.setAttribute("data-start-y",e.target.getAttribute("data-y"));
-		e.target.addEventListener("tmSlide",virtualTable.onSlide,false);
-		e.target.addEventListener("tmSlideEnd",virtualTable.stopSlide,false);
-		virtualTable.moveToFront(e.target);
+	this.startSlide	= function( e ) {
+		e.target.style['boxShadow'] = "0 0 10px #000";
+		e.target.setAttribute( "data-start-x", e.target.getAttribute("data-x") );
+		e.target.setAttribute( "data-start-y", e.target.getAttribute("data-y") );
+		e.target.addEventListener( "tmSlide", virtualTable.onSlide, false );
+		e.target.addEventListener( "tmSlideEnd", virtualTable.stopSlide, false );
+		virtualTable.moveToFront( e.target );
 	}
-	this.onSlide = function(e) {
-		e.target.setAttribute("data-x", parseFloat(e.target.getAttribute('data-start-x')) -e.startTouch.clientX + e.touch.clientX);
-		e.target.setAttribute("data-y", parseFloat(e.target.getAttribute('data-start-y')) -e.startTouch.clientY + e.touch.clientY);
-		virtualTable.update(e.target);
+	this.onSlide = function( e ) {
+		e.target.setAttribute( "data-x", parseFloat(e.target.getAttribute('data-start-x')) - e.startTouch.clientX + e.touch.clientX );
+		e.target.setAttribute( "data-y", parseFloat(e.target.getAttribute('data-start-y')) - e.startTouch.clientY + e.touch.clientY );
+		virtualTable.update( e.target );
 		e.preventDefault();	
 	}
-	this.stopSlide = function(e) {
-		e.target.style['boxShadow']="0 0 2px #000";
-		e.target.removeAttribute('data-start-x');
-		e.target.removeAttribute('data-start-y');
-		e.target.removeEventListener("tmSlide",virtualTable.onSlide,false);
-		e.target.removeEventListener("tmSlideEnd",virtualTable.stopSlide,false);
+	this.stopSlide = function( e ) {
+		e.target.style['boxShadow'] = "0 0 2px #000";
+		e.target.removeAttribute( 'data-start-x' );
+		e.target.removeAttribute( 'data-start-y' );
+		e.target.removeEventListener( "tmSlide", virtualTable.onSlide, false );
+		e.target.removeEventListener( "tmSlideEnd", virtualTable.stopSlide, false );
 	}
 	
-	this.startPinch = function(e) {
-		//TODO:
-		//IF 2 fingers are moving - set center of rotation in the middle of them
-		//IF 1 - set center to the still touch (the one not contained in changedTouches)
-		console.log( "tmPinchStart" );
-		
-		//itemPosition,rotation,scale
-		
+	this.startPinch = function(e) {		
 		var centerPoint = {
 			x: (e.targetTouches[0].clientX + e.targetTouches[1].clientX) *0.5,
 			y: (e.targetTouches[0].clientY + e.targetTouches[1].clientY) *0.5
@@ -226,7 +220,6 @@ var virtualTable = new function() {
 		e.preventDefault();
 	}
 	this.stopPinch = function(e) {
-		console.log( "tmPinchEnd" );
 		for (var i=0; i<e.targetTouches.length; i++) delete virtualTable.objects[e.targetTouches[i].identifier];
 		e.target.removeEventListener("tmPinch",virtualTable.onPinch,false);
 		e.target.removeEventListener("tmPinchEnd",virtualTable.stopPinch,false);
@@ -252,8 +245,6 @@ var virtualTable = new function() {
 				virtualTable.add(virtualTable.createImage('http://farm'+p.farm+'.static.flickr.com/'+p.server+'/'+p.id+'_'+p.secret+'_m.jpg'));
 			}
 		}
-			
-			
 		function setupTable() {
 			virtualTable.rotate = 70;
 			var videos = ["https://4076.voxcdn.com/demo-videos/midnight_sun_sv1_360p.webm",
@@ -269,7 +260,7 @@ var virtualTable = new function() {
 			virtualTable.rotate = 70;
 			var flickrApiCall = document.createElement("script");
 			document.body.appendChild(flickrApiCall);
-			flickrApiCall.src = 'http://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=856affa07586845de6fcbfb82520aa3e&per_page='+5+'&format=json';
+			flickrApiCall.src = 'http://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=ce3dc9021d4ba6867d8ba9880b54d053&per_page=5&format=json';
 		}
 				
 		function init() {

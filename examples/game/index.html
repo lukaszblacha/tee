@@ -5,7 +5,7 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0"/> <!-- iphone,android -->
 	<meta name="HandheldFriendly" content="true" /> <!-- blackberry -->
-	<title>Fake Touch Interface</title>
+	<title>Simple Game</title>
 	<link rel="stylesheet" type="text/css" href="css/style.css" />
 	<script type="text/javascript" charset="utf-8" src="../tee.min.js"></script>
 	<script type="text/javascript" charset="utf-8">
@@ -95,28 +95,22 @@ var game = new function() {
 		with(game.playersData[playerID]) {
 			px = -50-prevPointer.x + pointer.x;
 			py = -50-prevPointer.y + pointer.y;
-		}
-
-		//if( playerID==0 ) px = Math.min( px, window.innerWidth/2-100 );
-		//else px = Math.max( px, window.innerWidth/2 );
-		e.preventDefault();
-		
-		game.update( e.target, game.playersData[ playerID ].pos );
-		
-		game.playersData[ playerID ].prevPos = {
-			x:game.playersData[playerID].pos.x,
-			y:game.playersData[playerID].pos.y
-		}
-		game.playersData[ playerID ].prevPointerPos = {
-			x:game.playersData[playerID].pointer.x,
-			y:game.playersData[playerID].pointer.y,
-			time:game.playersData[playerID].pointer.time
-		};
-		game.playersData[ playerID ].pos = { x:px, y:py }
-		game.playersData[ playerID ].pointer = {
-			x:e.touch.clientX,
-			y:e.touch.clientY,
-			time:e.timeStamp
+			game.update( e.target, pos );
+			prevPos = {
+				x:pos.x,
+				y:pos.y
+			}
+			pos = { x:px, y:py }
+			prevPointerPos = {
+				x:pointer.x,
+				y:pointer.y,
+				time:pointer.time
+			};
+			pointer = {
+				x:e.touch.clientX,
+				y:e.touch.clientY,
+				time:e.timeStamp
+			}
 		}
 		game.updateBall();
 	}
